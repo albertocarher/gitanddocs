@@ -83,3 +83,35 @@ El servidor de desarrollo de Zensical cuenta con un motor de recarga en tiempo r
 1. **Abre y edita:** Modifica cualquier archivo `.md` en tu editor de código.
 2. **Guarda los cambios:** Al guardar el archivo, el servidor detectará la modificación de inmediato.
 3. **Sincronización instantánea:** La página web abierta en el navegador reflejará los cambios automáticamente sin necesidad de recargar manualmente la página.
+
+<br>
+<br>
+
+# Como usar UV sin recargar el terminal
+
+Para evitar reiniciar el terminal, existen dos opciones:
+
+1. **Recargar el archivo de configuración en la sesión actual**
+
+```bash
+# Bash
+source ~/.bashrc
+
+#Zsh
+source ~/.zshrc
+
+# Fish
+source ~/.config/fish/config.fish
+```
+
+Esto vuelve a ejecutar el archivo que el instalador moddificó, sin cerrar y abrir la terminal.
+
+2. **Añadir el PATH manualmente en la sesión actual**
+
+`uv` suele instalarse en `~/.cargo/bin` o `~/.local/bin`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH" 
+```
+
+(o `$HOME/.cargo/bin`, según dónde lo haya puesto el instalador - el propio script suele indicarlo al terminar)
