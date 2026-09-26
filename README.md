@@ -87,31 +87,100 @@ El servidor de desarrollo de Zensical cuenta con un motor de recarga en tiempo r
 <br>
 <br>
 
-# Como usar UV sin recargar el terminal
+# Desplegar site en un contenedor con NGINX
 
-Para evitar reiniciar el terminal, existen dos opciones:
+### Opción 1: Sitio estático (HTML/CSS/JS)
 
-1. **Recargar el archivo de configuración en la sesión actual**
+**Dockerfile**
+```dockerfile
+FROM nginx:alpine
 
-```bash
-# Bash
-source ~/.bashrc
+# Copia tus archivos estáticos a la carpeta que sirve NGINX
+COPY ./dist /usr/share/nginx/html
 
-#Zsh
-source ~/.zshrc
+# Copia tu configuración personalizada de NGINX
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Fish
-source ~/.config/fish/config.fish
+EXPOSE 80
 ```
 
-Esto vuelve a ejecutar el archivo que el instalador moddificó, sin cerrar y abrir la terminal.
+**nginx.conf**
+```nginx
+server {
+    listen 80;
+    server_name _;
 
-2. **Añadir el PATH manualmente en la sesión actual**
+    root /usr/share/nginx/html;
+    index index.html;
 
-`uv` suele instalarse en `~/.cargo/bin` o `~/.local/bin`:
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
 
-```bash
-export PATH="$HOME/.local/bin:$PATH" 
+    # Cache de assets estáticos
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}
 ```
 
-(o `$HOME/.cargo/bin`, según dónde lo haya puesto el instalador - el propio script suele indicarlo al terminar)
+**Construir y ejecutar**
+```bash
+docker build -t mi-sitio .
+docker run -d -p 80:80 --name mi-sitio-container mi-sitio
+```
+
+### Opción 2: WordPress (NGINX + PHP-FPM + MySQL)
+
+**docker-compose.yml**
+```yaml
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - wp_data:/var/www/html
+    depends_on:
+      - wordpress
+
+  wordpress:
+    image: wordpress:php8.2-fpm-alpine
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+    volumes:
+      - wp_data:/var/www/html
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  wp_data:
+  db_data:
+```
+
+**Ejecutar**
+```bash
+docker compose up -d
+```
+
+### Puntos clave
+
+- **HTTPS**: en producción, añade un proxy con Certbot/Let's Encrypt delante (o usa Traefik/Caddy para TLS automático).
+- **Persistencia**: usa volúmenes para no perder datos al reconstruir el contenedor.
+- **Logs**: monta `/var/log/nginx` como volumen si quieres revisarlos fuera del contenedor.
+- **Reinicio automático**: añade `restart: unless-stopped` en el compose.
