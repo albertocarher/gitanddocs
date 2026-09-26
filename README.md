@@ -83,6 +83,7 @@ El servidor de desarrollo de Zensical cuenta con un motor de recarga en tiempo r
 1. **Abre y edita:** Modifica cualquier archivo `.md` en tu editor de código.
 2. **Guarda los cambios:** Al guardar el archivo, el servidor detectará la modificación de inmediato.
 3. **Sincronización instantánea:** La página web abierta en el navegador reflejará los cambios automáticamente sin necesidad de recargar manualmente la página.
+<<<<<<< HEAD
 
 <br>
 <br>
@@ -184,3 +185,5 @@ docker compose up -d
 - **Persistencia**: usa volúmenes para no perder datos al reconstruir el contenedor.
 - **Logs**: monta `/var/log/nginx` como volumen si quieres revisarlos fuera del contenedor.
 - **Reinicio automático**: añade `restart: unless-stopped` en el compose.
+=======
+>>>>>>> parent of 926b267 (Como usar UV sin recargar el terminal)
